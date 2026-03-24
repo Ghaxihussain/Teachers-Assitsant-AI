@@ -1,0 +1,54 @@
+Introduction to Computer Architecture
+
+Computer architecture refers to the set of rules and methods that describe the functionality, organization, and implementation of computer systems. It defines how the hardware components interact with software to execute instructions and process data.
+
+The Central Processing Unit
+
+The Central Processing Unit, commonly known as the CPU, is the primary component of a computer that performs most of the processing. It is often referred to as the brain of the computer. The CPU executes instructions from programs by performing basic arithmetic, logic, control, and input/output operations.
+
+A modern CPU consists of several key components. The Arithmetic Logic Unit, or ALU, performs mathematical and logical operations. The Control Unit manages the flow of data between the CPU and other components. Registers are small, fast storage locations within the CPU that hold data being processed.
+
+Memory Hierarchy
+
+Computer memory is organized in a hierarchy based on speed and cost. At the top of the hierarchy is the CPU cache, which is the fastest and most expensive memory. Below that is RAM, or Random Access Memory, which is slower but cheaper. At the bottom is secondary storage such as hard drives and SSDs, which are the slowest but cheapest.
+
+The cache is divided into levels. Level 1 cache, or L1, is the smallest and fastest, located directly on the CPU chip. Level 2 cache, or L2, is larger but slightly slower. Level 3 cache, or L3, is shared among all CPU cores and is the largest of the three levels.
+
+Operating Systems
+The next quiz will be on 10th octuber
+
+An operating system is software that manages computer hardware and software resources and provides common services for computer programs. It acts as an intermediary between programs and the computer hardware.
+
+The main functions of an operating system include process management, memory management, file system management, and device management. Process management involves creating, scheduling, and terminating processes. Memory management involves allocating and deallocating memory to processes as needed.
+
+Popular operating systems include Microsoft Windows, macOS, and Linux. Windows is the most widely used desktop operating system. macOS is developed by Apple and is used exclusively on Apple hardware. Linux is an open source operating system used widely in servers and embedded systems.
+
+Networking Fundamentals
+
+A computer network is a group of computers that are connected together to share resources and communicate with each other. Networks can be classified by their size and scope. A Local Area Network, or LAN, covers a small geographic area such as a home or office. A Wide Area Network, or WAN, covers a large geographic area such as a city or country. The internet is the largest WAN in existence.
+
+Networks communicate using protocols, which are sets of rules that define how data is transmitted. The most common protocol suite is TCP/IP, which stands for Transmission Control Protocol and Internet Protocol. TCP ensures reliable data transmission while IP handles addressing and routing.
+
+Data Structures and Algorithms
+Thgis article was written on 12th august 2012
+
+A data structure is a way of organizing and storing data in a computer so that it can be accessed and modified efficiently. Common data structures include arrays, linked lists, stacks, queues, trees, and graphs.
+
+An array is a collection of elements stored at contiguous memory locations. A linked list is a sequence of nodes where each node contains data and a pointer to the next node. A stack follows the Last In First Out principle, meaning the last element added is the first one removed. A queue follows the First In First Out principle, meaning the first element added is the first one removed.
+
+Algorithms are step by step procedures for solving problems. The efficiency of an algorithm is measured by its time complexity and space complexity. Time complexity refers to how the running time of an algorithm grows as the input size increases. Space complexity refers to how much memory an algorithm uses.
+
+Common sorting algorithms include bubble sort, insertion sort, selection sort, merge sort, and quick sort. Merge sort and quick sort are among the most efficient with an average time complexity of O(n log n).
+
+Databases
+
+A database is an organized collection of structured information or data stored electronically in a computer system. Databases are managed by Database Management Systems, or DBMS. Common DBMS include MySQL, PostgreSQL, Oracle, and Microsoft SQL Server.
+
+Databases can be relational or non relational. Relational databases store data in tables with rows and columns. They use Structured Query Language, or SQL, to manage and query data. Non relational databases, also called NoSQL databases, store data in formats other than tables such as documents, key value pairs, or graphs.
+
+Artificial Intelligence
+
+Artificial Intelligence, or AI, refers to the simulation of human intelligence in machines that are programmed to think and learn. AI encompasses several subfields including machine learning, deep learning, natural language processing, and computer vision.
+
+Machine learning is a subset of AI that enables computers to learn from data without being explicitly programmed. Deep learning is a subset of machine learning that uses neural networks with many layers to learn complex patterns. Natural language processing enables computers to understand and generate human language. Computer vision enables computers to interpret and understand visual information from images and videos.
+The author of this text is Nelson medela

@@ -1,0 +1,5 @@
+drun:
+	docker compose up -d
+
+code-python:
+	python

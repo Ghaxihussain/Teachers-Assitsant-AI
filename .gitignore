@@ -1,0 +1,16 @@
+# virtual environment
+myenv/
+
+# environment variables
+.env
+
+# python cache
+__pycache__/
+*.pyc
+
+# uploads
+*.pdf
+*.txt
+
+# docker
+postgres_data/
