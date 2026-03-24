@@ -17,7 +17,7 @@ from sqlalchemy import text
 from unstructured.chunking.title import chunk_by_title
 
 
-client = OpenAI(api_key= "")
+client = OpenAI()
 
 def partition_txt_file(text_path: str) -> list:
     with open(text_path, "r") as f:
