@@ -13,11 +13,15 @@ import base64
 from openai import OpenAI
 from unstructured.documents.elements import Image, Table
 from sqlalchemy import insert
-from sqlalchemy import text
+from sqlalchemy import text, select
 from unstructured.chunking.title import chunk_by_title
+from dotenv import load_dotenv  
+from pgvector.sqlalchemy import Vector
+import asyncio
 
-
+load_dotenv()
 client = OpenAI()
+
 
 def partition_txt_file(text_path: str) -> list:
     with open(text_path, "r") as f:
@@ -37,11 +41,6 @@ def partition_pdf_file(pdf_path: str) -> list:
     )
     return elements
 
-els = partition_pdf_file("fpga.pdf")
-
-
-
-
 def chunk_data(type_file, path):
     if type_file == "text":
         els = partition_txt_file(path)
@@ -55,8 +54,6 @@ def chunk_data(type_file, path):
         combine_text_under_n_chars=500,
         include_orig_elements=True
     )
-
-    # Step 3: Extract from each chunk
     return chunks
     
 
@@ -138,8 +135,8 @@ def embed_chunk(text: str) -> list[float]:
     return response.data[0].embedding
 
 
-def file_to_embedds(type: str, path: str) -> list[dict]:
-    chunks = chunk_data(type, path)
+def file_to_embedds(type_of_file: str, path: str) -> list[dict]:
+    chunks = chunk_data(type_of_file, path)
     results = []
 
     for i, chunk in enumerate(chunks):
@@ -160,23 +157,21 @@ def file_to_embedds(type: str, path: str) -> list[dict]:
 
     return results
  
-
-async def vector_search(uin):
-    query_embedding = embed_chunk(uin)
-
+async def insert_to_vector_db(files_to_embed_returned_value):
     async with AsyncSessionLocal() as session:
-        result = await session.execute(
-            text("""
-                SELECT text, summary, source_file
-                FROM documents
-                ORDER BY embedding <=> :embedding
-                LIMIT 3
-            """),
-            {"embedding": str(query_embedding)}
-        )
-        rows = result.fetchall()
-        print(rows[0][0])
-    return rows
+        async with session.begin():
+            await session.execute(
+                insert(Document),
+                files_to_embed_returned_value  # pass the whole list of dicts
+            )
+
+
+async def insertion_pipeline(type: str, path: str):
+    insert_to_vector_db((file_to_embedds(type, path)))
+    print("Inserted")
+    return True
+
+
 
 
 
@@ -185,12 +180,9 @@ async def rag_query(query: str) -> str:
     query_embedding = embed_chunk(query)
     async with AsyncSessionLocal() as session:
         result = await session.execute(
-            text("""
-                SELECT text FROM documents
-                ORDER BY embedding <=> :embedding
-                LIMIT 3
-            """),
-            {"embedding": str(query_embedding)}
+            select(Document.text)
+            .order_by(Document.embedding.l2_distance(query_embedding))
+            .limit(3)
         )
         chunks = result.fetchall()
     
@@ -207,3 +199,19 @@ async def rag_query(query: str) -> str:
     return response.choices[0].message.content
 
 
+
+
+
+
+# files_to_embed ---> insert_to_vector_db 
+
+
+
+# direct insert use insertion_pipeline
+
+
+# for output, use rag_query
+
+
+
+print(asyncio.run(rag_query("what is FPGA?")))
