@@ -38,20 +38,24 @@ def partition_txt_file(text_path: str) -> list:
 
 def partition_pdf_file(path: str) -> list:
     if path.startswith("http"):
+        response = requests.get(path)
+        response.raise_for_status()
+        from io import BytesIO
+        file_obj = BytesIO(response.content)
         elements = unstructured_partition_pdf(
-            url=path, 
+            file=file_obj,
             strategy="hi_res",
             infer_table_structure=True,
             extract_image_block_types=["Image"],
-            extract_image_block_to_payload=True   
+            extract_image_block_to_payload=True
         )
     else:
         elements = unstructured_partition_pdf(
-            filename=path,  
+            filename=path,
             strategy="hi_res",
             infer_table_structure=True,
             extract_image_block_types=["Image"],
-            extract_image_block_to_payload=True   
+            extract_image_block_to_payload=True
         )
     return elements
 
