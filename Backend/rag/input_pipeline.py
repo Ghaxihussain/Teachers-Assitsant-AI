@@ -8,7 +8,7 @@ from unstructured_pytesseract import pytesseract
 from unstructured.partition.pdf import partition_pdf
 from unstructured.partition.text import partition_text as unstructured_partition_text
 from unstructured.partition.pdf import partition_pdf as unstructured_partition_pdf
-from ..config.database import AsyncSessionLocal, Document
+from ..config.database import AsyncSessionLocal, Document, Instruction
 import base64
 from openai import OpenAI
 from unstructured.documents.elements import Image, Table
@@ -18,31 +18,49 @@ from unstructured.chunking.title import chunk_by_title
 from dotenv import load_dotenv  
 from pgvector.sqlalchemy import Vector
 import asyncio
-
+import requests
 load_dotenv()
 client = OpenAI()
 
 
+
 def partition_txt_file(text_path: str) -> list:
-    with open(text_path, "r") as f:
-        content = f.read()
+    
+    if text_path.startswith("http"):
+        content = requests.get(text_path).text
+    else:
+        with open(text_path, "r") as f:
+            content = f.read()
     
     elements = unstructured_partition_text(text=content)
     return elements
 
 
-def partition_pdf_file(pdf_path: str) -> list:
-    elements = unstructured_partition_pdf(
-        filename=pdf_path,
-        strategy="hi_res",
-        infer_table_structure=True,
-        extract_image_block_types=["Image"],
-        extract_image_block_to_payload=True   
-    )
+def partition_pdf_file(path: str) -> list:
+    if path.startswith("http"):
+        elements = unstructured_partition_pdf(
+            url=path, 
+            strategy="hi_res",
+            infer_table_structure=True,
+            extract_image_block_types=["Image"],
+            extract_image_block_to_payload=True   
+        )
+    else:
+        elements = unstructured_partition_pdf(
+            filename=path,  
+            strategy="hi_res",
+            infer_table_structure=True,
+            extract_image_block_types=["Image"],
+            extract_image_block_to_payload=True   
+        )
     return elements
 
+
+
+
 def chunk_data(type_file, path):
-    if type_file == "text":
+    els = None
+    if type_file == "txt":
         els = partition_txt_file(path)
     elif type_file == "pdf":
         els= partition_pdf_file(path)
@@ -77,9 +95,6 @@ def extract_from_chunk(chunk) -> dict:
             result["tables"].append(html if html else el.text)
 
     return result
-
-
-
 
 
 def summarize_chunk(chunk_data: dict) -> str:
@@ -150,7 +165,7 @@ def file_to_embedds(type_of_file: str, path: str) -> list[dict]:
             "tables": extracted["tables"],
             "embedding": embed_chunk(content_to_embed),
             "source_file": path,                       
-            "file_type": type,                          
+            "file_type": type_of_file,                          
             "chunk_index": i,                         
             "page_number": getattr(chunk.metadata, "page_number", None),  
         })
@@ -166,11 +181,22 @@ async def insert_to_vector_db(files_to_embed_returned_value):
             )
 
 
-async def insertion_pipeline(type: str, path: str):
-    insert_to_vector_db((file_to_embedds(type, path)))
+async def insertion_pipeline(type_file: str, path: str):
+    print("Insertion started ..... ")
+    await insert_to_vector_db((file_to_embedds(type_file, path)))
     print("Inserted")
     return True
 
+
+async def insert_in_instructions(text: str):
+    emd = embed_chunk(text)
+    async with AsyncSessionLocal() as session:
+        async with session.begin():
+            await session.execute(
+                insert(Instruction).values(text = text, embedding = emd)
+            )
+
+    return "Inserted the instruction"
 
 
 
@@ -199,7 +225,36 @@ async def rag_query(query: str) -> str:
     return response.choices[0].message.content
 
 
+async def rag_query(query: str) -> str:
+    query_embedding = embed_chunk(query)
+    
+    async with AsyncSessionLocal() as session:
 
+        doc_result = await session.execute(
+            select(Document.text)
+            .order_by(Document.embedding.l2_distance(query_embedding))
+            .limit(3)
+        )
+        chunks = doc_result.fetchall()
+
+        instr_result = await session.execute(
+            select(Instruction.text)
+            .order_by(Instruction.embedding.l2_distance(query_embedding))
+            .limit(2)
+        )
+        instructions = instr_result.fetchall()
+
+    context = "\n\n".join([row[0] for row in chunks])
+    relevant_instructions = "\n".join([row[0] for row in instructions])
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": f"You are a teacher assistant.\n\nRelevant instructions:\n{relevant_instructions}"},
+            {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {query}"}
+        ]
+    )
+    return response.choices[0].message.content
 
 
 
@@ -214,4 +269,4 @@ async def rag_query(query: str) -> str:
 
 
 
-print(asyncio.run(rag_query("what is FPGA?")))
+# print(asyncio.run(rag_query("what is FPGA?")))
